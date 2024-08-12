@@ -1,5 +1,44 @@
-const MealPage = ({ params }) => {
-  return <h1>Meal {params.slug} </h1>;
+import Image from 'next/image';
+import classes from './page.module.css';
+import { getMeal } from '@/src/lib/meals';
+import { notFound } from 'next/navigation';
+
+const MealPage = async ({ params }) => {
+  const slug = params.slug;
+  const meal = await getMeal(slug);
+  if (!meal) {
+    return notFound();
+  }
+  const { title, image, creator, summary, instructions, creator_email } = meal;
+
+  const instructionsHTML = instructions
+    .replace(/(<([^>]+)>)/gi, '')
+    .replace(/\n/g, '<br />');
+
+  return (
+    <>
+      <header className={classes.header}>
+        <div className={classes.image}>
+          <Image src={image} alt={title} fill />
+        </div>
+        <div>
+          <div className={classes.headerText}>
+            <h1>{title}</h1>
+            <p className={classes.creator}>
+              by <a href={`mailto:${creator_email}`}>{creator}</a>
+            </p>
+            <p className={classes.summary}>{summary}</p>
+          </div>
+        </div>
+      </header>
+      <main>
+        <p
+          className={classes.instructions}
+          dangerouslySetInnerHTML={{ __html: instructionsHTML }}
+        ></p>
+      </main>
+    </>
+  );
 };
 
 export default MealPage;
