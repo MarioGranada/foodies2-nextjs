@@ -63,6 +63,7 @@ A course project that demonstrates the Next.js App Router, server components, se
 
 - Deploy the Next.js app to Vercel.
 - Data lives in the shared portfolio Supabase project; `POSTGRES_URL` comes from the Supabase ↔ Vercel integration.
+- A nightly Vercel Cron calls `/api/cron/reset`, which deletes every meal shared by visitors (the 7 seed meals stay) and revalidates `/meals`. The endpoint refuses requests without `Authorization: Bearer $CRON_SECRET`.
 - Keep server-only credentials out of client bundles.
 
 ## What to Avoid

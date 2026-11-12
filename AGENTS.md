@@ -22,6 +22,7 @@ Compact guide for future OpenCode sessions. It records only the facts an agent i
 
 - `POSTGRES_URL` (required): pooled connection string injected by the Supabase ↔ Vercel integration.
 - `POSTGRES_URL_NON_POOLING` (optional): used by `npm run db:migrate`.
+- `CRON_SECRET`: protects `app/api/cron/reset/route.js` (nightly Vercel Cron in `vercel.json`), which deletes every meal shared by visitors (the 7 seed meals stay) and revalidates `/meals`. Missing secret → every request is refused. Never print or commit it.
 - Documented in `.env.example`; never commit real values.
 
 ## Architecture

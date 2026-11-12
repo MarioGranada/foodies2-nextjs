@@ -7,6 +7,7 @@ _Last updated: 2026-11-12_
 - Meal grid, detail, share flow, and route fallbacks are implemented.
 - Data lives in Supabase Postgres (`foodies` schema); schema + seed in `db/migration.sql` (idempotent).
 - Linked to Vercel project `foodies2-nextjs` (GitHub connected). Live at https://foodies2-nextjs.vercel.app since 2026-11-12.
+- Nightly reset (2026-11-12): Vercel Cron `0 4 * * *` → `/api/cron/reset` deletes every meal shared by visitors (the 7 seed meals stay) and revalidates `/meals`; guarded by the `CRON_SECRET` env var.
 - No tests yet.
 
 ## Key decisions
