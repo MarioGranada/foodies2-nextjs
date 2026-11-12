@@ -7,12 +7,11 @@ import { revalidatePath } from 'next/cache';
 const isInvalidText = (text) => {
   return !text || text.trim() === '';
 };
-export const shareMeal = async (formData) => {
+export const shareMeal = async (prevState, formData) => {
   const meal = {
     title: formData.get('title'),
     summary: formData.get('summary'),
     instructions: formData.get('instructions'),
-    image: formData.get('image'),
     creator: formData.get('creator'),
     creator_email: formData.get('email'),
   };
@@ -21,12 +20,9 @@ export const shareMeal = async (formData) => {
     isInvalidText(meal.title) ||
     isInvalidText(meal.summary) ||
     isInvalidText(meal.instructions) ||
-    isInvalidText(meal.image) ||
     isInvalidText(meal.creator) ||
     isInvalidText(meal.creator_email) ||
-    !meal.creator_email.includes('@') ||
-    !meal.image ||
-    meal.image.size === 0
+    !meal.creator_email.includes('@')
   ) {
     return {
       message: 'Invalid Input. Please try again.',

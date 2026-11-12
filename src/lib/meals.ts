@@ -1,51 +1,46 @@
-import sql from 'better-sqlite3';
 import slugify from 'slugify';
 import xss from 'xss';
-import fs from 'node:fs';
+import sql from './db';
 
-const db = sql('meals.db');
+// Image uploads are disabled in the hosted demo: every shared meal uses this
+// bundled example photo (served from public/images).
+export const EXAMPLE_MEAL_IMAGE = '/images/test.jpeg';
+
+const columns = sql`id, slug, title, image, summary, instructions, creator, creator_email`;
 
 export const getMeals = async () => {
+  // Artificial delay kept on purpose to showcase the Suspense loading state.
   await new Promise((resolve) => setTimeout(resolve, 5000));
-  //   throw new Error('Failed to fetch meal data. Please try again later.');
-  return db.prepare('SELECT * FROM meals').all();
+  return sql`select ${columns} from foodies.meals order by id`;
 };
 
 export const getMeal = async (slug) => {
-  return db.prepare('SELECT * FROM meals WHERE slug = ?').get(slug);
+  const [meal] = await sql`select ${columns} from foodies.meals where slug = ${slug}`;
+  return meal;
+};
+
+const uniqueSlug = async (title) => {
+  const base = slugify(title, { lower: true, strict: true }) || 'meal';
+  const [existing] = await sql`select 1 from foodies.meals where slug = ${base}`;
+  return existing ? `${base}-${Date.now().toString(36)}` : base;
 };
 
 export const saveMeal = async (meal) => {
-  meal.slug = slugify(meal.title, { lower: true });
-  meal.instructions = xss(meal.instructions);
+  const slug = await uniqueSlug(meal.title);
 
-  const extension = meal.image.name.split('.').pop();
-  const filename = `${meal.slug}.${extension}`;
-
-  const stream = fs.createWriteStream(`public/images/${filename}`);
-  const bufferedImage = await meal.image.arrayBuffer();
-
-  stream.write(Buffer.from(bufferedImage), (error) => {
-    if (error) {
-      throw new Error('Saving image file error');
-    }
-  });
-
-  meal.image = `/images/${filename}`;
-
-  db.prepare(
-    `
-    INSERT INTO meals
-      (title, summary, instructions, creator, creator_email, image, slug)
-    VALUES (
-    @title,
-    @summary,
-    @instructions,
-    @creator,
-    @creator_email,
-    @image,
-    @slug
+  await sql`
+    insert into foodies.meals
+      (slug, title, image, summary, instructions, creator, creator_email)
+    values (
+      ${slug},
+      ${meal.title},
+      ${EXAMPLE_MEAL_IMAGE},
+      ${meal.summary},
+      ${xss(meal.instructions)},
+      ${meal.creator},
+      ${meal.creator_email}
     )
-    `
-  ).run(meal);
+  `;
+
+  return slug;
 };

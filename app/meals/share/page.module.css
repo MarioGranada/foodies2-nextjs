@@ -96,3 +96,21 @@
   color: #979797;
   cursor: not-allowed;
 }
+
+.exampleImage {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.exampleImage img {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.exampleImage p {
+  margin: 0;
+  color: #ddd6cb;
+  font-size: 0.95rem;
+}

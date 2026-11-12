@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/db-migrate.mjs"
   },
   "dependencies": {
-    "better-sqlite3": "^11.1.2",
-    "next": "14.0.3",
+    "next": "^14.2.35",
+    "postgres": "^3.4.9",
     "react": "^18",
     "react-dom": "^18",
     "slugify": "^1.6.6",
@@ -18,6 +19,9 @@
   },
   "devDependencies": {
     "eslint": "^8",
-    "eslint-config-next": "14.0.3"
+    "eslint-config-next": "^14.2.35"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

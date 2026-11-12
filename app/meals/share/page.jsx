@@ -1,6 +1,6 @@
 'use client';
 
-import ImagePicker from '@/src/ImagePicker';
+import Image from 'next/image';
 import classes from './page.module.css';
 import { shareMeal } from '@/src/lib/actions';
 import MealsSubmit from '@/src/components/MealsSubmit';
@@ -47,7 +47,18 @@ const ShareMealPage = () => {
             ></textarea>
           </p>
           {state.message && <p>{state.message}</p>}
-          <ImagePicker label="image" name="image" />
+          <div className={classes.exampleImage}>
+            <Image
+              src="/images/test.jpeg"
+              alt="Example meal photo"
+              width={275}
+              height={183}
+            />
+            <p>
+              Image uploads are disabled in this demo, so every shared meal
+              uses this example photo.
+            </p>
+          </div>
           <p className={classes.actions}>
             <MealsSubmit />
           </p>
