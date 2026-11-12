@@ -6,6 +6,14 @@ Meals are stored in a `foodies` schema of a hosted Supabase Postgres database, a
 
 > **Follow-along project.** This app was built while following **Next.js 14 & React — The Complete Guide (Academind / Maximilian Schwarzmüller)**. It is included in the portfolio as a learning exercise, not as a production product. The implementation is my own work based on the course material.
 
+## Live demo
+
+| | |
+| --- | --- |
+| **Live site** | https://foodies2-nextjs.vercel.app |
+| **Repository** | https://github.com/MarioGranada/foodies2-nextjs |
+| **Portfolio summary** | Meal-sharing app in Next.js 14 built on Server Components and Server Actions: browse a recipe grid, open detail pages and share your own meal, persisted to Supabase Postgres. |
+
 ## Features
 
 - Meal grid loaded from Supabase Postgres through a server-side data helper.
@@ -112,6 +120,7 @@ Route-level `loading.jsx`, `error.jsx`, and `not-found.jsx` provide the App Rout
 
 ## Deployment
 
+- **Live:** https://foodies2-nextjs.vercel.app (Vercel production, deployed from `master`).
 - Target: Vercel, with data in the shared portfolio Supabase project (schema `foodies`). The Supabase ↔ Vercel integration injects `POSTGRES_URL` into every environment.
 - Run `npm run db:migrate` once against the Supabase database before the first deployment.
 - Image uploads are intentionally off. Re-enabling them would need object storage (e.g. Supabase Storage); the old `ImagePicker` component is kept for that.

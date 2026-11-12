@@ -6,7 +6,7 @@ _Last updated: 2026-11-12_
 
 - Meal grid, detail, share flow, and route fallbacks are implemented.
 - Data lives in Supabase Postgres (`foodies` schema); schema + seed in `db/migration.sql` (idempotent).
-- Linked to Vercel project `foodies2-nextjs` (GitHub connected). Deployment waits on the Supabase integration being provisioned.
+- Linked to Vercel project `foodies2-nextjs` (GitHub connected). Live at https://foodies2-nextjs.vercel.app since 2026-11-12.
 - No tests yet.
 
 ## Key decisions
@@ -28,7 +28,6 @@ _Last updated: 2026-11-12_
 
 ## Next steps
 
-- Add the live URL to the README once deployed.
 - Add tests around the share action and slug generation.
 
 ---
