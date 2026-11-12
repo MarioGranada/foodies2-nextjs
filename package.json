@@ -22,6 +22,6 @@
     "eslint-config-next": "^14.2.35"
   },
   "engines": {
-    "node": ">=22"
+    "node": "22.x"
   }
 }
