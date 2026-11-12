@@ -12,3 +12,4 @@ node_modules
 meals.db
 .vercel
 .env*
+!.env.example

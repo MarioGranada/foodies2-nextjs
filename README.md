@@ -1,18 +1,18 @@
 # Foodies
 
-A meal-sharing application built with the Next.js App Router. Visitors can browse a meal grid, open a meal detail page, and share their own recipe with an uploaded image.
+A meal-sharing application built with the Next.js App Router. Visitors can browse a meal grid, open a meal detail page, and share their own recipe.
 
-Meals are stored in a local SQLite database, and the share form uses a server action to validate, sanitise, and persist the submission.
+Meals are stored in a `foodies` schema of a hosted Supabase Postgres database, and the share form uses a server action to validate, sanitise, and persist the submission. Image uploads are disabled in the hosted demo: every shared meal uses one bundled example photo.
 
 > **Follow-along project.** This app was built while following **Next.js 14 & React — The Complete Guide (Academind / Maximilian Schwarzmüller)**. It is included in the portfolio as a learning exercise, not as a production product. The implementation is my own work based on the course material.
 
 ## Features
 
-- Meal grid loaded from SQLite through a server-side data helper.
+- Meal grid loaded from Supabase Postgres through a server-side data helper.
 - Dynamic meal detail route (`/meals/[slug]`).
 - Share form with server action, validation, and error feedback.
-- Image upload saved to `public/images/`.
-- Slug generation and HTML sanitisation before persistence.
+- Shared meals use the bundled example photo (`public/images/test.jpeg`); no file uploads.
+- Unique slug generation and HTML sanitisation before persistence.
 - Route-level loading, error, and not-found states.
 - Community page and shared header/navigation.
 
@@ -22,7 +22,7 @@ Meals are stored in a local SQLite database, and the share form uses a server ac
 | --- | --- |
 | Framework | Next.js 14 (App Router) |
 | Language | JavaScript |
-| Database | SQLite via better-sqlite3 |
+| Database | Supabase Postgres via `postgres` (postgres.js) |
 | Styling | CSS Modules |
 | Utilities | slugify + xss |
 
@@ -36,12 +36,13 @@ foodies2-nextjs/
 │   ├── layout.js
 │   └── page.js
 ├── src/
-│   ├── components/           # Header, MealsGrid, MealItem, ImagePicker
-│   ├── lib/                  # meals data helpers and server actions
-│   └── ImagePicker/
+│   ├── components/           # Header, MealsGrid, MealItem
+│   ├── lib/                  # db client, meals data helpers, server actions
+│   └── ImagePicker/          # Upload picker (unused while uploads are disabled)
 ├── assets/                   # Source images
-├── public/images/            # Served images and uploads
-├── initdb.js                 # Creates and seeds meals.db
+├── public/images/            # Served meal images (incl. the example photo)
+├── db/migration.sql          # Idempotent schema + seed
+├── scripts/db-migrate.mjs    # Applies db/migration.sql
 └── next.config.js
 ```
 
@@ -49,28 +50,39 @@ foodies2-nextjs/
 
 ### Requirements
 
-- Node.js 18 or 20 (better-sqlite3 is a native module and must match the Node version).
+- Node.js 22+.
 - npm (a `package-lock.json` is committed).
+- A Postgres database. The deployed app uses the shared portfolio Supabase project, connected to the Vercel project through the Supabase integration.
 
 ### 1. Install dependencies
 
 ```bash
 npm install
-node initdb.js
-npm run dev
 ```
 
-### 2. Run locally
-
-**Seed the database (once)**
+### 2. Configure environment variables
 
 ```bash
-node initdb.js
+vercel link          # once, links the folder to the Vercel project
+vercel env pull .env.local
 ```
 
-Creates `meals.db` and inserts the sample meals. Re-running it against an existing database will fail on duplicate slugs.
+| Variable | Description | Required |
+| --- | --- | --- |
+| `POSTGRES_URL` | Pooled Postgres connection string (set by the Supabase integration). | Yes |
+| `POSTGRES_URL_NON_POOLING` | Direct connection used by `npm run db:migrate`; falls back to `POSTGRES_URL`. | No |
 
-**Start the development server**
+Any Postgres works locally, e.g. `POSTGRES_URL=postgres://postgres:postgres@localhost:5432/postgres`. See `.env.example`.
+
+### 3. Create the schema and seed data
+
+```bash
+npm run db:migrate
+```
+
+Safe to re-run: tables use `if not exists` and seed rows `on conflict do nothing`.
+
+### 4. Run locally
 
 ```bash
 npm run dev
@@ -86,13 +98,13 @@ Open http://localhost:3000.
 | `npm run build` | Create a production build. |
 | `npm run start` | Serve the production build. |
 | `npm run lint` | Run Next.js linting. |
-| `node initdb.js` | Create and seed the SQLite database. |
+| `npm run db:migrate` | Apply `db/migration.sql` (schema + seed). |
 
 ## How it works
 
-`src/lib/meals.ts` owns database access: `getMeals`, `getMeal`, and `saveMeal`. Server components call these helpers directly, so no API route is needed.
+`src/lib/meals.ts` owns database access: `getMeals`, `getMeal`, and `saveMeal`, using the shared postgres.js client in `src/lib/db.js`. Server components call these helpers directly, so no API route is needed and the connection string never reaches the browser.
 
-`src/lib/actions/index.js` contains the `shareMeal` server action. It validates the form, generates a slug, sanitises instructions with `xss`, writes the uploaded image, and inserts the row.
+`src/lib/actions/index.js` contains the `shareMeal` server action. It validates the form, then `saveMeal` generates a unique slug, sanitises instructions with `xss`, assigns the example image, and inserts the row. `revalidatePath('/meals')` refreshes the prerendered grid.
 
 `app/meals/page.jsx` renders the grid, `app/meals/[slug]/page.jsx` renders a detail page, and `app/meals/share/page.jsx` is a client component that binds the server action through `useFormState`.
 
@@ -100,16 +112,17 @@ Route-level `loading.jsx`, `error.jsx`, and `not-found.jsx` provide the App Rout
 
 ## Deployment
 
-- Target: Vercel for the Next.js app, with Supabase for persistence. The current SQLite file and local image uploads do not survive on Vercel’s ephemeral filesystem.
-- Migration path: replace `better-sqlite3` with Supabase Postgres (or another hosted Postgres) and move image uploads to Supabase Storage, keeping the same server-action boundary.
-- If the app stays self-hosted, mount persistent storage for `meals.db` and `public/images/`.
+- Target: Vercel, with data in the shared portfolio Supabase project (schema `foodies`). The Supabase ↔ Vercel integration injects `POSTGRES_URL` into every environment.
+- Run `npm run db:migrate` once against the Supabase database before the first deployment.
+- Image uploads are intentionally off. Re-enabling them would need object storage (e.g. Supabase Storage); the old `ImagePicker` component is kept for that.
 
 ## Notes and limitations
 
-- `meals.db` is gitignored and must be created with `node initdb.js`.
-- Uploaded images are written to `public/images/` at runtime; that folder must be writable.
+- Anyone can share a meal on the public demo; there is no moderation or rate limiting.
+- `getMeals` waits 5 s on purpose to showcase the Suspense loading state.
 - The share form relies on React 18’s `useFormState` from `react-dom`; it is a course-era API.
-- Re-running `initdb.js` against an existing database fails because meal slugs are unique.
+- The `foodies` schema is not exposed through the Supabase Data API; RLS is enabled with no policies, and the app connects server-side only.
+- `/meals` is prerendered at build time, so `POSTGRES_URL` must be available during `next build`.
 
 ---
 

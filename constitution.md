@@ -17,7 +17,7 @@ This document defines the non-negotiable foundations for this repository. Read i
 | --- | --- | --- |
 | Framework | Next.js 14 (App Router) | Server components and server actions keep data access on the server. |
 | Language | JavaScript | The course project uses JSX with the App Router. |
-| Database | SQLite via better-sqlite3 | Zero-configuration local persistence for the course project. |
+| Database | Supabase Postgres via `postgres` (postgres.js) | Durable hosted persistence for the Vercel deployment (2026-11-12); SQLite cannot persist on Vercel. postgres.js is a small, dependency-free driver that works with Supabase's pooler. |
 | Styling | CSS Modules | Component-scoped styles without a UI dependency. |
 | Utilities | slugify + xss | Stable meal URLs and sanitised instructions. |
 
@@ -27,7 +27,7 @@ This document defines the non-negotiable foundations for this repository. Read i
 
 ### 1. Scope
 
-A course project that demonstrates the Next.js App Router, server components, server actions, and SQLite persistence. It is not a multi-user production product; authentication and moderation are out of scope.
+A course project that demonstrates the Next.js App Router, server components, server actions, and Postgres persistence. It is not a multi-user production product; authentication and moderation are out of scope.
 
 ### 2. Environment Isolation
 
@@ -43,8 +43,8 @@ A course project that demonstrates the Next.js App Router, server components, se
 
 ### 4. Data and State
 
-- SQLite is the local source of truth; `meals.db` is generated and gitignored.
-- Uploaded images are files on disk, not database blobs.
+- Supabase Postgres (`foodies` schema) is the source of truth; schema and seed live in `db/migration.sql`.
+- Image uploads are disabled in the hosted demo; shared meals reference the bundled example photo.
 - Validate and sanitise all user input before persistence.
 
 ### 5. Styling and UX
@@ -57,17 +57,17 @@ A course project that demonstrates the Next.js App Router, server components, se
 
 - `npm run lint` and `npm run build` are the gates.
 - Manually test the grid, a detail page, a valid share submission, invalid input, and the not-found route.
-- Confirm uploaded images appear after submission.
+- Confirm a shared meal appears in the grid and on its detail page after submission.
 
 ### 7. Deployment
 
 - Deploy the Next.js app to Vercel.
-- Replace SQLite and local uploads with Supabase Postgres and Storage before relying on production persistence.
+- Data lives in the shared portfolio Supabase project; `POSTGRES_URL` comes from the Supabase ↔ Vercel integration.
 - Keep server-only credentials out of client bundles.
 
 ## What to Avoid
 
-- Committing `meals.db` or uploaded images.
+- Committing database URLs or `.env*` files (except `.env.example`).
 - Putting database code in client components.
 - Trusting user HTML without sanitisation.
 - Assuming the local filesystem is writable in production.
